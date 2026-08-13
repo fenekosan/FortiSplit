@@ -69,5 +69,5 @@ manually with `openfortivpn -o <otp>` and use the app for status and routes only
 ## More
 
 - [INSTALL.md](INSTALL.md) — what `install.sh` and the root script do, and how to uninstall
-- [docs/architecture.ru.md](docs/architecture.ru.md) — architecture, security notes, build and icon scripts (in Russian)
+- [docs/architecture.md](docs/architecture.md) — architecture, security notes, build and icon scripts
 - [AGENT.md](AGENT.md) — notes for whoever picks this up next

@@ -1,310 +1,73 @@
 # FortiSplit
 
-Меню-бар приложение для macOS, которое поднимает FortiGate SSL-VPN через
-[`openfortivpn`](https://github.com/adrienverge/openfortivpn) в режиме
-**split-tunnel**: в туннель заворачиваются только подсети из списка, весь
-остальной трафик идёт через обычный интернет. Плюс редактор списка маршрутов
-и индикатор состояния прямо в статус-баре.
+**English** · [Русский](README.ru.md)
 
-Это перенос рабочей схемы с Ubuntu (openfortivpn + `set-routes=0` + кастомные
-маршруты) на macOS. В Linux маршруты добавлял dispatcher NetworkManager; здесь
-их кладёт на поднятый `pppN` собственный root-скрипт, который приложение зовёт
-после подключения.
+A macOS menu-bar client for FortiGate SSL-VPN with real split tunneling: only the
+subnets you list travel through the tunnel, everything else keeps using your
+normal internet connection.
 
-> Сборка рассчитана на **личное использование**: ad-hoc подпись, без Apple
-> Developer аккаунта и без нотаризации. Привилегии — через `sudoers`, а не
-> `SMAppService` (тот требует настоящую подпись).
+![FortiSplit settings window](docs/screenshot.png)
 
----
+## How it works
 
-## Архитектура
+FortiSplit drives [openfortivpn](https://github.com/adrienverge/openfortivpn) with
+`set-routes = 0`, so the gateway never touches your routing table. Once the tunnel
+is up, the app puts your subnets on the `pppN` interface itself — and can push an
+edited list onto a running tunnel without reconnecting.
 
-```
-┌──────────────────────────┐  правит напрямую   ┌────────────────────────────┐
-│  FortiSplit.app          │───────────────────▶│  ~/.config/fortisplit/     │
-│  (меню-бар, LSUIElement) │  без root, обычный │   <имя>.config  (0600)     │
-│   работает от юзера      │  FileManager       │   <имя>.routes             │
-└───────────┬──────────────┘                    │   active                   │
-            │                                   └────────────────────────────┘
-            │  sudo -n fortisplit-vpnctl start <config>
-            │  sudo -n fortisplit-vpnctl apply-routes <routes>
-            │  (разрешено в /etc/sudoers.d/fortisplit, NOPASSWD)
-            ▼
-┌──────────────────────────┐
-│  fortisplit-vpnctl       │  ← единственная root-граница (bash)
-│  start / stop / status   │     проверяет пути, запускает VPN,
-│  apply-routes / logs     │     кладёт подсети на pppN через route(8)
-└───────────┬──────────────┘
-            │ запускает                        ┌──────────────────────────┐
-            ▼                                  │  pppd  →  интерфейс pppN │
-┌──────────────────────────┐──────uses────────▶│  (маршруты не трогает)   │
-│  openfortivpn -c config  │                   └──────────────────────────┘
-│  (set-routes = 0)        │
-└──────────────────────────┘
-```
+Configs are plain files in `~/.config/fortisplit`, editable from the app or any
+text editor, no root involved. Keep as many as you like and switch the active one
+in the settings window; each has its own subnet list.
 
-Почему так: GUI-процессу нельзя дать root напрямую, но и складывать всё подряд
-в систему незачем. Конфиги — обычные пользовательские файлы, приложение правит
-их само; root нужен ровно для двух вещей, которые иначе невозможны, — запустить
-openfortivpn и проложить маршруты на ppp-интерфейс.
+Exactly two permanent files land outside the app bundle:
 
-Маршруты кладёт сам `vpnctl` по команде `apply-routes`, а не хук `/etc/ppp/ip-up`,
-как это делалось раньше. Так в системе не появляется файлов, которые дёргаются
-при любом чужом PPP-соединении, а приложению достаточно позвать команду, когда
-статус стал `CONNECTED` (и ещё раз после правки списка). Повторный вызов
-безопасен: уже проложенный маршрут просто не добавится второй раз.
+| Path | Purpose |
+|---|---|
+| `/usr/local/bin/fortisplit-vpnctl` | the root script — the only place anything runs as root |
+| `/etc/sudoers.d/fortisplit` | a rule letting your user run **only** that script without a password |
 
-## Раскладка файлов на диске после установки
+That is the entire privileged surface. The GUI itself never runs as root: it asks
+the script to start openfortivpn, report status, and lay down routes.
 
-| Что | Куда | Права |
-|---|---|---|
-| Приложение | `/Applications/FortiSplit.app` | ad-hoc signed |
-| Конфиг VPN (с паролем) | `~/.config/fortisplit/<имя>.config` | твои, 0600 |
-| Маршруты этого конфига | `~/.config/fortisplit/<имя>.routes` | твои |
-| Имя активного конфига | `~/.config/fortisplit/active` | твои |
-| Root-скрипт | `/usr/local/bin/fortisplit-vpnctl` | root:wheel 0755 |
-| Разрешение sudo | `/etc/sudoers.d/fortisplit` | root:wheel 0440 |
-| Лог сессии | `/var/log/fortisplit.log` | root |
+## Install
 
-Вне бандла живут ровно два постоянных файла: root-скрипт и правило sudoers.
-Меньше не получится, и вот почему. Правило NOPASSWD обязано указывать на файл,
-который ты не можешь переписать без пароля: `/Applications/FortiSplit.app`
-доступен на запись админу молча, так что скрипт внутри бандла означал бы, что
-любой процесс от твоего имени подменяет его и получает root. Всё остальное
-(ppp-хуки, снимки маршрутов, pid-файлы, каталог в `/etc`) из проекта убрано.
-
-Системную часть ставит `install.sh`, он же заводит `~/.config/fortisplit` с
-шаблоном конфига. `/var/log/fortisplit.log` появляется сам при первом запуске.
-
-Конфигов может быть несколько: у каждого свой файл маршрутов рядом, а `active`
-хранит имя того, который используется при подключении. Переключение конфига
-меняет и набор подсетей — от прошлого VPN ничего не остаётся.
-
----
-
-## Что нужно на Маке для сборки
-
-- macOS 13+ (для `MenuBarExtra`)
-- Xcode Command Line Tools: `xcode-select --install` (даёт `swift`, `codesign`)
-- openfortivpn: `brew install openfortivpn`
-
-## Сборка дистрибутива
-
-Чтобы поделиться приложением, не отдавая исходники:
+Requires macOS 13 or newer and openfortivpn:
 
 ```bash
-./scripts/make-dist.sh
+brew install openfortivpn
 ```
 
-Получится `dist/FortiSplit-<версия>/` и такой же `.zip`: приложение, `install.sh`,
-root-скрипт, шаблоны конфига и `README.md` для получателя (это `INSTALL.md` из
-корня). Подпись бандла переносится через `ditto` и проверяется в копии.
-
-## Сборка и установка
+Grab the archive from [Releases](../../releases), unpack it and run:
 
 ```bash
-# 1. Собрать .app (ad-hoc подпись включена в скрипт)
-./build-app.sh
-
-# 2. Поставить привилегированные части (спросит пароль sudo один раз)
-./install.sh
-
-# 3. Вписать пароль VPN (или потом в окне настроек приложения)
-nano ~/.config/fortisplit/example.config     # или импортируй свой в окне настроек
-
-# 4. Проверить, что sudoers работает без пароля
-sudo -n /usr/local/bin/fortisplit-vpnctl status    # -> DISCONNECTED
-
-# 5. Установить приложение и запустить
+xattr -dr com.apple.quarantine FortiSplit.app   # ad-hoc signed, so Gatekeeper blocks it after a download
 cp -R FortiSplit.app /Applications/
+./install.sh                                    # asks for your sudo password once
 open /Applications/FortiSplit.app
 ```
 
-Если приложение не запускается из-за Gatekeeper (перенесли с VM через браузер/
-AirDrop — поймали карантин):
+Or build it yourself: `./build-app.sh && ./install.sh`.
 
-```bash
-xattr -dr com.apple.quarantine /Applications/FortiSplit.app
-```
+A shield icon appears in the menu bar — filled while the tunnel is up, outlined
+when it is down. Open **Settings…**, fill in the config template or **Import…** an
+existing openfortivpn config, then list your subnets on the **Routes** tab.
 
-или один раз через **Системные настройки → Конфиденциальность и безопасность →
-«Всё равно открыть»**.
+On the first connection openfortivpn usually rejects the gateway certificate and
+prints its hash (**Show Log**); add `trusted-cert = <hash>` to the config.
 
-## Использование
+## Worth knowing
 
-Иконка в статус-баре:
-- `lock.shield` — отключено
-- `lock.rotation` — подключение
-- `lock.shield.fill` — подключено (в строке статуса показан IP на ppp)
-- `exclamationmark.shield` — ошибка (например, sudoers не настроен)
+The NOPASSWD rule means any process running as you can invoke the script and,
+through the openfortivpn config it feeds to root, obtain root. That is a fair
+trade on a personal machine; on a managed one, judge for yourself. The stricter
+alternative — `SMAppService` + XPC — needs a paid Developer ID, which this project
+deliberately avoids.
 
-Меню: **Подключить / Отключить**, **Настройки…**, **Показать логи**, **Выход**.
+If your VPN requires a one-time code, background startup cannot work; connect
+manually with `openfortivpn -o <otp>` and use the app for status and routes only.
 
-Окно настроек: сверху выбор конфига, ниже две вкладки. Обе работают с тем
-конфигом, который выбран в шапке, — включая неактивный. Набор кнопок справа
-зависит от вкладки, потому что «импорт» на них означает разное.
+## More
 
-- **Конфиг** — сырой текст `<имя>.config`, как его читает openfortivpn.
-  Кнопки: «Сделать активным», «Новый», «Импорт…» (добавляет новый конфиг из
-  файла на диске), «Удалить». Удалить активный конфиг нельзя, сначала сделай
-  активным другой.
-- **Маршруты** — список подсетей CIDR этого конфига. «Сохранить» пишет файл;
-  **«Применить сейчас»** тут же кладёт подсети на работающий туннель, ничего не
-  переподключая — кнопка активна, только когда поднят туннель этого конфига.
-  «Импорт…» здесь **заменяет** список подсетей выбранного конфига содержимым
-  файла. Заводить, удалять и переключать активный конфиг с этой вкладки нельзя
-  — это дела вкладки «Конфиг».
-Правка конфигов идёт без sudo: это обычные файлы в твоём домашнем каталоге,
-их можно держать в git, копировать между машинами и править любым редактором.
-
-«Применить сейчас» только **добавляет** подсети: маршрут, который ты убрал из
-списка, останется проложенным до переподключения. Отдельно снимать его не нужно
-— вместе с интерфейсом `pppN` он исчезает сам.
-
----
-
-## Иконка
-
-Иконка бандла лежит готовой в `Resources/FortiSplit.icns`, её кладёт в `.app`
-скрипт сборки. Если поменялась картинка — положи новый квадрат 1024×1024 в
-`Resources/AppIcon.png` и пересобери набор размеров:
-
-```bash
-./scripts/make-icns.sh
-```
-
-Finder и Dock кешируют иконки: если после переустановки видна старая, помогает
-`touch /Applications/FortiSplit.app` и перезапуск Dock (`killall Dock`).
-
-Иконки статус-бара выводятся из той же картинки скриптом:
-
-```bash
-swift scripts/make-menubar-icon.swift
-```
-
-Он берёт эмблему целиком и вычитает из неё трубу с глобусом — получается
-залитый щит с прорезью. Плюс контурная версия. Оба файла — template-изображения
-(чёрный + альфа), так что цвет под светлую и тёмную строку меню macOS подбирает
-сама.
-
-Состояния в баре:
-
-| Состояние | Иконка |
-|---|---|
-| Подключено | залитый щит |
-| Подключение | он же, приглушённый |
-| Отключено | контурный щит |
-| Ошибка | `exclamationmark.shield` (символ SF) |
-
-Ошибка намеренно осталась символом SF: она должна выбиваться из ряда, а мотив
-щита при этом сохраняется.
-
-## Язык интерфейса
-
-Приложение и скрипты говорят по-английски и по-русски. Приложение язык не
-спрашивает: macOS сама выбирает `ru.lproj` или `en.lproj` из бандла по языку
-системы (Системные настройки → Основные → Язык и регион), английский — запасной
-вариант.
-
-Скрипты смотрят на `LANG`/`LC_ALL`, а `FORTISPLIT_LANG=en|ru` перебивает это
-значение:
-
-```bash
-FORTISPLIT_LANG=en ./install.sh
-```
-
-`fortisplit-vpnctl` принимает флаг `--lang=en|ru` перед командой — приложение
-всегда передаёт его явно, потому что `sudo` вычищает окружение и на `LANG`
-рассчитывать нельзя:
-
-```bash
-sudo -n /usr/local/bin/fortisplit-vpnctl --lang=ru status
-```
-
-## Первый сертификат FortiGate
-
-При самом первом подключении openfortivpn может отказать с сообщением про
-непроверенный сертификат шлюза и вывести его SHA256. Скопируй хэш и добавь во
-вкладку «Конфиг» (или прямо в `~/.config/fortisplit/<имя>.config`):
-
-```
-trusted-cert = <хэш>
-```
-
-Проще всего один раз запустить вручную и увидеть подсказку:
-
-```bash
-sudo openfortivpn -c ~/.config/fortisplit/<имя>.config
-```
-
-## 2FA / OTP
-
-Если на VPN включён одноразовый код, фоновый запуск работать не будет — нужен
-интерактивный ввод. Тогда подключайся вручную с `-o <otp>`; приложение в этом
-режиме используй только для правки маршрутов и просмотра статуса.
-
-## Замечания по безопасности
-
-`fortisplit-vpnctl` разрешён в sudoers без пароля, поэтому любой процесс от
-твоего пользователя может его запустить. Для личной машины это приемлемо, но
-надо понимать, что это значит: скрипт скармливает root-процессу openfortivpn
-конфиг, который ты же и написал, а у openfortivpn есть опции семейства `pppd-*`,
-через которые в root подгружается произвольный код. То есть эта схема в принципе
-равносильна «root по запросу» — независимо от того, где лежат конфиги.
-
-Именно поэтому переезд конфигов из `/etc` в домашний каталог ничего не ухудшил:
-пароль и раньше доставался любому процессу пользователя (через ту же команду
-`sudo -n fortisplit-vpnctl read-config`), зато исчезли шесть root-команд правки
-файлов и разбор имён внутри root-скрипта.
-
-Что скрипт всё же проверяет, чтобы не выстрелить себе в ногу: путь должен быть
-абсолютным, без `..`, обычным файлом (не симлинком) и принадлежать тому, кто
-вызвал sudo. Список подсетей разбирается построчно, и в `route` уходит только
-строка, целиком совпавшая со строгим IPv4-CIDR, — остальное пропускается с
-сообщением.
-
-Если нужна более строгая модель — это уже путь `SMAppService` + XPC +
-Developer ID (см. AGENT.md, раздел «Пути развития»).
-
-## Удаление
-
-```bash
-sudo rm -f /usr/local/bin/fortisplit-vpnctl \
-           /etc/sudoers.d/fortisplit \
-           /var/log/fortisplit.log
-rm -rf /Applications/FortiSplit.app
-rm -rf ~/.config/fortisplit          # конфиги с паролями — удаляй осознанно
-```
-
-## Структура репозитория
-
-```
-FortiSplit/
-├── Package.swift              SwiftPM, executable-таргет
-├── Sources/FortiSplit/
-│   ├── FortiSplitApp.swift     @main, MenuBarExtra + окно настроек
-│   ├── VPNController.swift     запуск sudo vpnctl, поллинг статуса
-│   ├── ConfigStore.swift       чтение/запись ~/.config/fortisplit
-│   ├── MenuContentView.swift   содержимое меню
-│   ├── SettingsWindowView.swift выбор конфига + вкладки
-│   └── TextFileEditor.swift    панель правки одного текстового файла
-├── Resources/
-│   ├── Info.plist              LSUIElement=true (только статус-бар)
-│   ├── AppIcon.png             исходник иконки 1024×1024
-│   ├── FortiSplit.icns         собранная иконка бандла
-│   ├── MenuIcon*.png           глифы статус-бара (+@2x)
-│   └── en.lproj, ru.lproj      строки интерфейса
-├── scripts/
-│   ├── fortisplit-vpnctl       root-точка входа: запуск VPN и маршруты
-│   ├── make-icns.sh            AppIcon.png -> FortiSplit.icns
-│   ├── make-menubar-icon.swift AppIcon.png -> глифы статус-бара
-│   └── make-dist.sh            каталог и .zip для раздачи
-├── config/
-│   ├── example.config          шаблон конфига
-│   └── example.routes          пустой список подсетей
-├── build-app.sh                сборка .app + ad-hoc подпись
-├── install.sh                  установка привилегированных частей
-├── INSTALL.md                  инструкция для получателя (en/ru)
-├── README.md
-└── AGENT.md                    инструкция для кодового агента
-```
+- [INSTALL.md](INSTALL.md) — what `install.sh` and the root script do, and how to uninstall
+- [docs/architecture.ru.md](docs/architecture.ru.md) — architecture, security notes, build and icon scripts (in Russian)
+- [AGENT.md](AGENT.md) — notes for whoever picks this up next

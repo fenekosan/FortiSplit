@@ -1,0 +1,5 @@
+# Subnets to send through the tunnel — one CIDR per line, e.g. 10.0.0.0/8.
+# Everything not listed here goes through the normal internet connection.
+#
+# Подсети, которые идут в туннель, — по одной на строку в формате CIDR.
+# Всё, чего здесь нет, идёт мимо VPN.

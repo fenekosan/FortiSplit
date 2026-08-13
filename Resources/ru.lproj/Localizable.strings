@@ -1,0 +1,63 @@
+/* Русская локализация. Ключи — английские исходные строки. */
+
+/* Меню */
+"Connect" = "Подключить";
+"Disconnect" = "Отключить";
+"Settings…" = "Настройки…";
+"Show Log" = "Показать логи";
+"Quit" = "Выход";
+"● Connected%@" = "● Подключено%@";
+"◌ Connecting…%@" = "◌ Подключение…%@";
+"○ Disconnected%@" = "○ Отключено%@";
+"⚠ Error" = "⚠ Ошибка";
+
+/* Состояние */
+"no configs — create or import one" = "нет конфигов — создай или импортируй";
+"sudoers is not configured — run install.sh" = "sudoers не настроен — запусти install.sh";
+"could not connect" = "не удалось подключиться";
+
+/* Окно настроек */
+"FortiSplit Settings" = "Настройки FortiSplit";
+"Config" = "Конфиг";
+"Routes" = "Маршруты";
+"Make Active" = "Сделать активным";
+"New" = "Новый";
+"Import…" = "Импорт…";
+"Delete" = "Удалить";
+"Cancel" = "Отмена";
+"Create" = "Создать";
+"Reload" = "Перечитать";
+"Apply Now" = "Применить сейчас";
+"Push the subnets onto the running tunnel — no reconnect needed. Available while this config is the active one and its tunnel is up." = "Положить подсети на работающий туннель, не переподключаясь. Доступно, пока этот конфиг активен и его туннель поднят.";
+"Routes applied to the tunnel" = "Маршруты применены к туннелю";
+"Choose a file with the subnet list" = "Выбери файл со списком подсетей";
+"Replace the subnet list of the selected config from a file" = "Заменить список подсетей выбранного конфига содержимым файла";
+"Routes replaced from “%@”" = "Маршруты заменены из «%@»";
+"Save" = "Сохранить";
+"Name of the new config" = "Имя нового конфига";
+"Latin letters, digits, dot, dash, underscore." = "Латиница, цифры, точка, дефис, подчёркивание.";
+"for example office" = "например office";
+"Choose an openfortivpn config file" = "Выбери файл конфига openfortivpn";
+"Delete config “%@” together with its routes?" = "Удалить конфиг «%@» вместе с его маршрутами?";
+"The openfortivpn config, in «key = value» form. It lives in ~/.config/fortisplit; the password is stored as plain text, the file is kept at mode 0600." = "Конфиг openfortivpn в формате «ключ = значение». Лежит в ~/.config/fortisplit; пароль хранится открытым текстом, файл закрыт правами 0600.";
+"Subnets to send through the tunnel — one CIDR per line, e.g. 10.0.0.0/8. Lines starting with # are comments. Everything else goes through the normal connection." = "Подсети, которые идут в туннель, — по одной на строку в формате CIDR (например 10.0.0.0/8). Строки с # — комментарии. Остальной трафик идёт мимо VPN.";
+
+/* Сообщения о результате */
+"Active config: %@" = "Активный конфиг: %@";
+"Config “%@” saved" = "Конфиг «%@» сохранён";
+"Routes saved" = "Маршруты сохранены";
+"Created config “%@”" = "Создан конфиг «%@»";
+"Imported as “%@”" = "Импортирован как «%@»";
+"Config “%@” deleted" = "Конфиг «%@» удалён";
+"could not save: %@" = "не удалось сохранить: %@";
+"not saved, unrecognized lines: %@" = "не сохранено, непонятные строки: %@";
+"could not create: %@" = "не удалось создать: %@";
+"could not import: %@" = "не удалось импортировать: %@";
+"could not delete: %@" = "не удалось удалить: %@";
+"could not select config: %@" = "не удалось выбрать конфиг: %@";
+"Could not run sudo/vpnctl: %@" = "Не удалось запустить sudo/vpnctl: %@";
+
+/* Заготовки файлов */
+"Split tunnel: the gateway must not push routes or DNS — the app lays the routes down itself." = "Сплит-туннель: шлюзу не даём ставить маршруты и DNS, их кладёт приложение.";
+"On the first connection openfortivpn prints the gateway certificate hash — paste it here to trust that gateway." = "При первом подключении openfortivpn напечатает хэш сертификата шлюза — впиши его сюда, чтобы шлюзу доверять.";
+"Subnets to send through the tunnel — one CIDR per line, e.g. 10.0.0.0/8." = "Подсети, которые идут в туннель, — по одной на строку в формате CIDR (например 10.0.0.0/8).";

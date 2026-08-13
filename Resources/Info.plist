@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>FortiSplit</string>
+    <key>CFBundleDisplayName</key>
+    <string>FortiSplit</string>
+    <key>CFBundleIdentifier</key>
+    <string>local.fortisplit.app</string>
+    <key>CFBundleExecutable</key>
+    <string>FortiSplit</string>
+    <key>CFBundleIconFile</key>
+    <string>FortiSplit</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <!-- Язык интерфейса macOS выбирает сама: язык системы, если он есть среди
+         локализаций бандла, иначе CFBundleDevelopmentRegion -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>en</string>
+        <string>ru</string>
+    </array>
+    <!-- Приложение только в статус-баре: без иконки в Dock и меню-бара приложения -->
+    <key>LSUIElement</key>
+    <true/>
+</dict>
+</plist>

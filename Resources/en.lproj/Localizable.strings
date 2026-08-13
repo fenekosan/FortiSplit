@@ -1,0 +1,64 @@
+/* Английский — язык оригинала. Файл нужен, чтобы macOS считала en доступной
+   локализацией; значения совпадают с ключами. */
+
+/* Меню */
+"Connect" = "Connect";
+"Disconnect" = "Disconnect";
+"Settings…" = "Settings…";
+"Show Log" = "Show Log";
+"Quit" = "Quit";
+"● Connected%@" = "● Connected%@";
+"◌ Connecting…%@" = "◌ Connecting…%@";
+"○ Disconnected%@" = "○ Disconnected%@";
+"⚠ Error" = "⚠ Error";
+
+/* Состояние */
+"no configs — create or import one" = "no configs — create or import one";
+"sudoers is not configured — run install.sh" = "sudoers is not configured — run install.sh";
+"could not connect" = "could not connect";
+
+/* Окно настроек */
+"FortiSplit Settings" = "FortiSplit Settings";
+"Config" = "Config";
+"Routes" = "Routes";
+"Make Active" = "Make Active";
+"New" = "New";
+"Import…" = "Import…";
+"Delete" = "Delete";
+"Cancel" = "Cancel";
+"Create" = "Create";
+"Reload" = "Reload";
+"Apply Now" = "Apply Now";
+"Push the subnets onto the running tunnel — no reconnect needed. Available while this config is the active one and its tunnel is up." = "Push the subnets onto the running tunnel — no reconnect needed. Available while this config is the active one and its tunnel is up.";
+"Routes applied to the tunnel" = "Routes applied to the tunnel";
+"Choose a file with the subnet list" = "Choose a file with the subnet list";
+"Replace the subnet list of the selected config from a file" = "Replace the subnet list of the selected config from a file";
+"Routes replaced from “%@”" = "Routes replaced from “%@”";
+"Save" = "Save";
+"Name of the new config" = "Name of the new config";
+"Latin letters, digits, dot, dash, underscore." = "Latin letters, digits, dot, dash, underscore.";
+"for example office" = "for example office";
+"Choose an openfortivpn config file" = "Choose an openfortivpn config file";
+"Delete config “%@” together with its routes?" = "Delete config “%@” together with its routes?";
+"The openfortivpn config, in «key = value» form. It lives in ~/.config/fortisplit; the password is stored as plain text, the file is kept at mode 0600." = "The openfortivpn config, in «key = value» form. It lives in ~/.config/fortisplit; the password is stored as plain text, the file is kept at mode 0600.";
+"Subnets to send through the tunnel — one CIDR per line, e.g. 10.0.0.0/8. Lines starting with # are comments. Everything else goes through the normal connection." = "Subnets to send through the tunnel — one CIDR per line, e.g. 10.0.0.0/8. Lines starting with # are comments. Everything else goes through the normal connection.";
+
+/* Сообщения о результате */
+"Active config: %@" = "Active config: %@";
+"Config “%@” saved" = "Config “%@” saved";
+"Routes saved" = "Routes saved";
+"Created config “%@”" = "Created config “%@”";
+"Imported as “%@”" = "Imported as “%@”";
+"Config “%@” deleted" = "Config “%@” deleted";
+"could not save: %@" = "could not save: %@";
+"not saved, unrecognized lines: %@" = "not saved, unrecognized lines: %@";
+"could not create: %@" = "could not create: %@";
+"could not import: %@" = "could not import: %@";
+"could not delete: %@" = "could not delete: %@";
+"could not select config: %@" = "could not select config: %@";
+"Could not run sudo/vpnctl: %@" = "Could not run sudo/vpnctl: %@";
+
+/* Заготовки файлов */
+"Split tunnel: the gateway must not push routes or DNS — the app lays the routes down itself." = "Split tunnel: the gateway must not push routes or DNS — the app lays the routes down itself.";
+"On the first connection openfortivpn prints the gateway certificate hash — paste it here to trust that gateway." = "On the first connection openfortivpn prints the gateway certificate hash — paste it here to trust that gateway.";
+"Subnets to send through the tunnel — one CIDR per line, e.g. 10.0.0.0/8." = "Subnets to send through the tunnel — one CIDR per line, e.g. 10.0.0.0/8.";

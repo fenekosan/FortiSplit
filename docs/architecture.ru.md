@@ -94,17 +94,31 @@ openfortivpn и проложить маршруты на ppp-интерфейс.
 - Xcode Command Line Tools: `xcode-select --install` (даёт `swift`, `codesign`)
 - openfortivpn: `brew install openfortivpn`
 
-## Сборка дистрибутива
+## Сборка установщика
 
 Чтобы поделиться приложением, не отдавая исходники:
 
 ```bash
-./scripts/make-dist.sh
+./scripts/make-pkg.sh
 ```
 
-Получится `dist/FortiSplit-<версия>/` и такой же `.zip`: приложение, `install.sh`,
-root-скрипт, шаблоны конфига и `README.md` для получателя (это `INSTALL.md` из
-корня). Подпись бандла переносится через `ditto` и проверяется в копии.
+Получится `dist/FortiSplit-<версия>.pkg` — это и есть артефакт релиза. В payload
+приложение и root-скрипт; правило sudoers пишет `postinstall`, потому что оно
+зависит от того, кто сидит за машиной (`stat -f%Su /dev/console`), и заранее в
+payload его не положить. Перед установкой правило проверяется через `visudo` —
+ровно как в `install.sh`.
+
+Важен флаг `pkgbuild --ownership recommended`: без него root-скрипт приехал бы с
+правами того, кто собирал пакет, и правило sudoers доверяло бы файлу, который
+пользователь может переписать.
+
+Пакет **неподписанный** — для подписи нужен сертификат Developer ID Installer,
+то есть платный аккаунт. Поэтому получателю придётся один раз разрешить запуск
+через системные настройки, это расписано в README. В отличие от `install.sh`,
+установщик не кладёт шаблон конфига: каталог `~/.config/fortisplit` заводит само
+приложение при первом запуске, а шаблон пишет кнопка «Новый».
+
+`install.sh` остался в репозитории — им ставят прямо из исходников.
 
 ## Сборка и установка
 
@@ -274,6 +288,7 @@ Developer ID (см. AGENT.md, раздел «Пути развития»).
 sudo rm -f /usr/local/bin/fortisplit-vpnctl \
            /etc/sudoers.d/fortisplit \
            /var/log/fortisplit.log
+sudo pkgutil --forget local.fortisplit.installer   # если ставили из .pkg
 rm -rf /Applications/FortiSplit.app
 rm -rf ~/.config/fortisplit          # конфиги с паролями — удаляй осознанно
 ```
@@ -300,7 +315,7 @@ FortiSplit/
 │   ├── fortisplit-vpnctl       root-точка входа: запуск VPN и маршруты
 │   ├── make-icns.sh            AppIcon.png -> FortiSplit.icns
 │   ├── make-menubar-icon.swift AppIcon.png -> глифы статус-бара
-│   └── make-dist.sh            каталог и .zip для раздачи
+│   └── make-pkg.sh             установщик .pkg
 ├── config/
 │   ├── example.config          шаблон конфига
 │   └── example.routes          пустой список подсетей
@@ -309,8 +324,8 @@ FortiSplit/
 ├── docs/
 │   ├── architecture.md         этот документ по-английски
 │   ├── architecture.ru.md      этот документ
-│   └── screenshot.png          окно настроек для README
-├── INSTALL.md                  инструкция для получателя (en/ru)
+│   ├── screenshot.png          окно настроек для README
+│   └── gatekeeper.png          как разрешить запуск
 ├── README.md, README.ru.md     краткое описание и установка
 └── AGENT.md                    инструкция для кодового агента
 ```

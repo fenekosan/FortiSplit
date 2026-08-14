@@ -31,29 +31,59 @@ the script to start openfortivpn, report status, and lay down routes.
 
 ## Install
 
-Requires macOS 13 or newer and openfortivpn:
+Requires macOS 13 or newer. First install openfortivpn — FortiSplit drives it,
+it is not bundled:
 
 ```bash
 brew install openfortivpn
 ```
 
-Grab the archive from [Releases](../../releases), unpack it and run:
+Then download **FortiSplit-x.y.z.pkg** from [Releases](../../releases) and open
+it. The installer places the app in `/Applications` and the root script in
+`/usr/local/bin`, and adds the sudoers rule for your user. Nothing else.
+
+### Letting macOS open it
+
+The package is signed ad-hoc, not with a paid Developer ID, so on the first
+attempt macOS refuses to open it. This is expected and you only do it once:
+
+![Allowing the app in System Settings](docs/gatekeeper.png)
+
+1. Double-click the `.pkg` — a warning appears, dismiss it.
+2. Open **System Settings → Privacy & Security** and scroll down to **Security**.
+3. Next to the message about the blocked file press **Open Anyway** (the
+   screenshot shows a placeholder name) and confirm with Touch ID or your
+   password.
+4. Double-click the `.pkg` again — this time it installs.
+
+If you prefer the terminal, this route skips the dialog entirely:
 
 ```bash
-xattr -dr com.apple.quarantine FortiSplit.app   # ad-hoc signed, so Gatekeeper blocks it after a download
-cp -R FortiSplit.app /Applications/
-./install.sh                                    # asks for your sudo password once
-open /Applications/FortiSplit.app
+sudo installer -pkg FortiSplit-0.1.0.pkg -target /
 ```
 
-Or build it yourself: `./build-app.sh && ./install.sh`.
+Add `-allowUntrusted` if it complains about the missing signature.
 
-A shield icon appears in the menu bar — filled while the tunnel is up, outlined
-when it is down. Open **Settings…**, fill in the config template or **Import…** an
-existing openfortivpn config, then list your subnets on the **Routes** tab.
+Building from source instead: `./build-app.sh && ./install.sh`.
+
+### First run
+
+Launch FortiSplit from `/Applications` — a shield icon appears in the menu bar,
+filled while the tunnel is up, outlined when it is down. Open **Settings…**,
+press **New** for a config template or **Import…** to pick an existing
+openfortivpn config, then list your subnets on the **Routes** tab.
 
 On the first connection openfortivpn usually rejects the gateway certificate and
 prints its hash (**Show Log**); add `trusted-cert = <hash>` to the config.
+
+### Uninstall
+
+```bash
+sudo rm -f /usr/local/bin/fortisplit-vpnctl /etc/sudoers.d/fortisplit /var/log/fortisplit.log
+sudo pkgutil --forget local.fortisplit.installer
+rm -rf /Applications/FortiSplit.app
+rm -rf ~/.config/fortisplit      # these configs hold passwords — delete deliberately
+```
 
 ## Worth knowing
 
@@ -68,6 +98,5 @@ manually with `openfortivpn -o <otp>` and use the app for status and routes only
 
 ## More
 
-- [INSTALL.md](INSTALL.md) — what `install.sh` and the root script do, and how to uninstall
-- [docs/architecture.md](docs/architecture.md) — architecture, security notes, build and icon scripts
+- [docs/architecture.md](docs/architecture.md) — architecture, what the root script does, security notes, build and icon scripts
 - [AGENT.md](AGENT.md) — notes for whoever picks this up next

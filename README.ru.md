@@ -31,29 +31,59 @@ FortiSplit запускает [openfortivpn](https://github.com/adrienverge/open
 
 ## Установка
 
-Нужен macOS 13 или новее и openfortivpn:
+Нужен macOS 13 или новее. Сначала поставь openfortivpn — FortiSplit им управляет,
+внутрь он не вшит:
 
 ```bash
 brew install openfortivpn
 ```
 
-Скачай архив из [релизов](../../releases), распакуй и выполни:
+Затем скачай **FortiSplit-x.y.z.pkg** из [релизов](../../releases) и открой его.
+Установщик положит приложение в `/Applications`, root-скрипт в `/usr/local/bin` и
+добавит правило sudoers для твоего пользователя. Больше ничего.
+
+### Как разрешить запуск
+
+Пакет подписан ad-hoc, а не платным Developer ID, поэтому с первого раза macOS
+его не откроет. Это ожидаемо и делается один раз:
+
+![Разрешение запуска в системных настройках](docs/gatekeeper.png)
+
+1. Дважды кликни по `.pkg` — появится предупреждение, закрой его.
+2. Открой **Системные настройки → Конфиденциальность и безопасность** и
+   пролистай вниз до раздела **Безопасность**.
+3. Рядом с сообщением о заблокированном файле нажми **Открыть всё равно** (на
+   скриншоте имя приложения условное) и подтверди через Touch ID или пароль.
+4. Кликни по `.pkg` ещё раз — теперь он установится.
+
+Если привычнее терминал, этот путь обходит диалог совсем:
 
 ```bash
-xattr -dr com.apple.quarantine FortiSplit.app   # подпись ad-hoc, после скачивания Gatekeeper не пустит
-cp -R FortiSplit.app /Applications/
-./install.sh                                    # один раз спросит пароль sudo
-open /Applications/FortiSplit.app
+sudo installer -pkg FortiSplit-0.1.0.pkg -target /
 ```
 
-Либо собери сам: `./build-app.sh && ./install.sh`.
+Добавь `-allowUntrusted`, если он пожалуется на отсутствие подписи.
 
-В строке меню появится щит — залитый, пока туннель поднят, контурный, когда
-выключен. Открой **Настройки…**, заполни шаблон конфига или нажми **Импорт…** и
-подсунь готовый конфиг openfortivpn, а подсети впиши на вкладке **Маршруты**.
+Собрать из исходников: `./build-app.sh && ./install.sh`.
+
+### Первый запуск
+
+Запусти FortiSplit из `/Applications` — в строке меню появится щит, залитый, пока
+туннель поднят, и контурный, когда выключен. Открой **Настройки…**, нажми
+**Новый** для шаблона конфига или **Импорт…**, чтобы подсунуть готовый конфиг
+openfortivpn, а подсети впиши на вкладке **Маршруты**.
 
 При первом подключении openfortivpn обычно ругается на сертификат шлюза и печатает
 его хэш (виден через **Показать логи**) — добавь в конфиг `trusted-cert = <хэш>`.
+
+### Удаление
+
+```bash
+sudo rm -f /usr/local/bin/fortisplit-vpnctl /etc/sudoers.d/fortisplit /var/log/fortisplit.log
+sudo pkgutil --forget local.fortisplit.installer
+rm -rf /Applications/FortiSplit.app
+rm -rf ~/.config/fortisplit      # конфиги с паролями — удаляй осознанно
+```
 
 ## Что стоит понимать
 
@@ -69,6 +99,5 @@ open /Applications/FortiSplit.app
 
 ## Подробнее
 
-- [INSTALL.md](INSTALL.md) — что делают `install.sh` и root-скрипт, как удалить
-- [docs/architecture.ru.md](docs/architecture.ru.md) — архитектура, замечания по безопасности, скрипты сборки и иконок
+- [docs/architecture.ru.md](docs/architecture.ru.md) — архитектура, что делает root-скрипт, замечания по безопасности, скрипты сборки и иконок
 - [AGENT.md](AGENT.md) — заметки для того, кто продолжит

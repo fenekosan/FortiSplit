@@ -97,18 +97,31 @@ switches the set of subnets too — nothing is left over from the previous VPN.
 - Xcode Command Line Tools: `xcode-select --install` (gives `swift`, `codesign`)
 - openfortivpn: `brew install openfortivpn`
 
-## Building a distribution
+## Building the installer
 
 To share the app without handing over the sources:
 
 ```bash
-./scripts/make-dist.sh
+./scripts/make-pkg.sh
 ```
 
-You get `dist/FortiSplit-<version>/` and a matching `.zip`: the app,
-`install.sh`, the root script, the config templates and a `README.md` for the
-recipient (that is `INSTALL.md` from the repo root). The bundle signature is
-carried over with `ditto` and verified in the copy.
+You get `dist/FortiSplit-<version>.pkg` — that is the release artifact. Its
+payload is the app plus the root script; the sudoers rule is written by a
+`postinstall` script, because it depends on who is sitting at the machine
+(`stat -f%Su /dev/console`) and cannot be baked into the payload. The rule is
+validated with `visudo` before being installed, exactly as `install.sh` does it.
+
+`pkgbuild --ownership recommended` matters here: without it the root script would
+arrive owned by whoever built the package, and the sudoers rule would be trusting
+a file the user can rewrite.
+
+The package is **not signed** — that needs a Developer ID Installer certificate,
+i.e. a paid account. So the recipient has to allow it once through System
+Settings; the README walks through that. Unlike `install.sh`, the installer does
+not seed a template config: the app creates `~/.config/fortisplit` on first launch
+and the "New" button writes the template.
+
+`install.sh` stays in the repo for installing straight from a source checkout.
 
 ## Build and install
 
@@ -278,6 +291,7 @@ road (see AGENT.md, the "Ways forward" section).
 sudo rm -f /usr/local/bin/fortisplit-vpnctl \
            /etc/sudoers.d/fortisplit \
            /var/log/fortisplit.log
+sudo pkgutil --forget local.fortisplit.installer   # if installed from the .pkg
 rm -rf /Applications/FortiSplit.app
 rm -rf ~/.config/fortisplit          # these configs hold passwords — delete deliberately
 ```
@@ -304,7 +318,7 @@ FortiSplit/
 │   ├── fortisplit-vpnctl       root entry point: starting the VPN and routes
 │   ├── make-icns.sh            AppIcon.png -> FortiSplit.icns
 │   ├── make-menubar-icon.swift AppIcon.png -> status-bar glyphs
-│   └── make-dist.sh            folder and .zip for sharing
+│   └── make-pkg.sh             the .pkg installer
 ├── config/
 │   ├── example.config          config template
 │   └── example.routes          empty subnet list
@@ -313,8 +327,8 @@ FortiSplit/
 ├── docs/
 │   ├── architecture.md         this document
 │   ├── architecture.ru.md      this document in Russian
-│   └── screenshot.png          settings window for the README
-├── INSTALL.md                  instructions for the recipient (en/ru)
+│   ├── screenshot.png          settings window for the README
+│   └── gatekeeper.png          allowing the app to run
 ├── README.md, README.ru.md     short description and installation
 └── AGENT.md                    instructions for a coding agent
 ```

@@ -114,6 +114,16 @@
   `./scripts/make-icns.sh` -> `Resources/FortiSplit.icns`, дальше её копирует
   `build-app.sh`. В `Info.plist` за это отвечает `CFBundleIconFile`.
 
+## Раздача
+
+Артефакт релиза — `dist/FortiSplit-<версия>.pkg`, собирается
+`./scripts/make-pkg.sh`. Правило sudoers пишет `postinstall`: пользователя он
+берёт как `stat -f%Su /dev/console`, потому что сам работает от root. Не забудь
+`pkgbuild --ownership recommended` — иначе root-скрипт приедет с правами
+сборщика, и sudoers будет доверять файлу, который пользователь может переписать.
+Пакет неподписанный (нужен Developer ID Installer), поэтому в README расписано,
+как разрешить запуск через системные настройки.
+
 ## Пути развития (не для этой итерации)
 
 - Автозапуск/reconnect: `LaunchAgent` пользователя, который держит приложение,

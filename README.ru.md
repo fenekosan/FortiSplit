@@ -59,7 +59,7 @@ brew install openfortivpn
 Если привычнее терминал, этот путь обходит диалог совсем:
 
 ```bash
-sudo installer -pkg FortiSplit-0.1.0.pkg -target /
+sudo installer -pkg FortiSplit-0.1.1.pkg -target /
 ```
 
 Добавь `-allowUntrusted`, если он пожалуется на отсутствие подписи.

@@ -61,6 +61,11 @@ command once the status turns `CONNECTED` (and again after the list is edited).
 Repeating the call is harmless: an already-installed route is simply not added
 twice.
 
+`CONNECTED` means the `pppN` interface already has its IPv4 address. pppd
+creates the interface about a second before IPCP hands out the address, and
+routes laid down in that gap do not survive; until then the status stays
+`CONNECTING`, and `apply-routes` refuses to run.
+
 ## On-disk layout after installation
 
 | What | Where | Mode |

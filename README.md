@@ -59,7 +59,7 @@ attempt macOS refuses to open it. This is expected and you only do it once:
 If you prefer the terminal, this route skips the dialog entirely:
 
 ```bash
-sudo installer -pkg FortiSplit-0.1.0.pkg -target /
+sudo installer -pkg FortiSplit-0.1.1.pkg -target /
 ```
 
 Add `-allowUntrusted` if it complains about the missing signature.

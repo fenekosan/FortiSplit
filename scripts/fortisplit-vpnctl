@@ -97,6 +97,14 @@ ppp_iface() {
     ifconfig -l 2>/dev/null | tr ' ' '\n' | grep '^ppp' | head -n1
 }
 
+# IPv4-адрес интерфейса. pppd создаёт pppN сразу при старте, а адрес выдаёт
+# только по завершении IPCP — примерно через секунду. Маршруты, положенные в
+# этот промежуток, не переживают выдачу адреса, поэтому туннель считается
+# поднятым только с адресом.
+ppp_ip() {
+    ifconfig "$1" 2>/dev/null | awk '/inet /{print $2; exit}'
+}
+
 # Пид-файл не заводим: процесс однозначно опознаётся по своей командной строке.
 is_running() {
     [ -n "$OFV" ] && pgrep -f "^$OFV -c " >/dev/null 2>&1
@@ -127,10 +135,12 @@ case "$cmd" in
 
   status)
     IF="$(ppp_iface)"
-    if [ -n "$IF" ] && is_running; then
-        ip="$(ifconfig "$IF" 2>/dev/null | awk '/inet /{print $2; exit}')"
-        printf "CONNECTED\t%s\n" "${ip:-$IF}"
+    ip=""
+    [ -n "$IF" ] && ip="$(ppp_ip "$IF")"
+    if [ -n "$ip" ] && is_running; then
+        printf "CONNECTED\t%s\n" "$ip"
     elif is_running; then
+        # процесс жив, но интерфейса или адреса ещё нет
         printf "CONNECTING\t\n"
     else
         printf "DISCONNECTED\t\n"
@@ -142,7 +152,7 @@ case "$cmd" in
     [ -n "$routes" ] || die "$(t usage-apply)" 1
     check_user_file "$routes" routes
     IF="$(ppp_iface)"
-    [ -n "$IF" ] || die "$(t no-tunnel)" 4
+    { [ -n "$IF" ] && [ -n "$(ppp_ip "$IF")" ]; } || die "$(t no-tunnel)" 4
 
     added=0; bad=""
     # `|| [ -n "$line" ]` — иначе последняя строка без перевода строки теряется

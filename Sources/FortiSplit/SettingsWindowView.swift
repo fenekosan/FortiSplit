@@ -90,7 +90,8 @@ struct SettingsWindowView: View {
                 }
             }
             .labelsHidden()
-            .frame(minWidth: 180)
+            .pickerStyle(.menu)
+            .frame(width: 180)
 
             if tab == .config {
                 Button("Make Active") {

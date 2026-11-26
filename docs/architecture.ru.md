@@ -95,7 +95,7 @@ openfortivpn и проложить маршруты на ppp-интерфейс.
 
 ## Что нужно на Маке для сборки
 
-- macOS 13+ (для `MenuBarExtra`)
+- macOS 27+
 - Xcode Command Line Tools: `xcode-select --install` (даёт `swift`, `codesign`)
 - openfortivpn: `brew install openfortivpn`
 

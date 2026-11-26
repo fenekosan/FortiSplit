@@ -31,7 +31,7 @@ FortiSplit запускает [openfortivpn](https://github.com/adrienverge/open
 
 ## Установка
 
-Нужен macOS 13 или новее. Сначала поставь openfortivpn — FortiSplit им управляет,
+Нужен macOS 27 или новее. Сначала поставь openfortivpn — FortiSplit им управляет,
 внутрь он не вшит:
 
 ```bash

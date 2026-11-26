@@ -40,7 +40,7 @@
 
 1. Проверь окружение:
    ```bash
-   sw_vers                       # macOS 13+
+   sw_vers                       # macOS 27+
    swift --version               # есть Command Line Tools
    command -v openfortivpn || echo "нужно: brew install openfortivpn"
    ```

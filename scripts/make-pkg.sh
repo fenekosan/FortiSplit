@@ -125,7 +125,7 @@ cat > "$work/distribution.xml" <<XML
     <organization>local.fortisplit</organization>
     <options customize="never" require-scripts="false" hostArchitectures="arm64,x86_64"/>
     <volume-check>
-        <allowed-os-versions><os-version min="13.0"/></allowed-os-versions>
+        <allowed-os-versions><os-version min="27.0"/></allowed-os-versions>
     </volume-check>
     <readme file="readme.html"/>
     <choices-outline><line choice="default"/></choices-outline>

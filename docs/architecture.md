@@ -98,7 +98,7 @@ switches the set of subnets too — nothing is left over from the previous VPN.
 
 ## What the Mac needs to build
 
-- macOS 13+ (for `MenuBarExtra`)
+- macOS 27+
 - Xcode Command Line Tools: `xcode-select --install` (gives `swift`, `codesign`)
 - openfortivpn: `brew install openfortivpn`
 

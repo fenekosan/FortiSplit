@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "FortiSplit",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS("27.0")],
     targets: [
         .executableTarget(
             name: "FortiSplit",

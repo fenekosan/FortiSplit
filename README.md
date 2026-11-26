@@ -31,7 +31,7 @@ the script to start openfortivpn, report status, and lay down routes.
 
 ## Install
 
-Requires macOS 13 or newer. First install openfortivpn — FortiSplit drives it,
+Requires macOS 27 or newer. First install openfortivpn — FortiSplit drives it,
 it is not bundled:
 
 ```bash
